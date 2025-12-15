@@ -1,69 +1,50 @@
-// Utilidades para manejar localStorage
+// src/utils/localStorage.js
 
-const STORAGE_KEY = 'cv_manager_data';
-const THEME_KEY = 'cv_manager_theme';
+const DATA_KEY = 'cvData';
+const THEME_KEY = 'darkMode';
 
-/**
- * Guardar datos en localStorage
- */
+// Funciones para guardar/cargar la Data (CV)
 export const saveToLocalStorage = (data) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    return true;
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem(DATA_KEY, serializedData);
   } catch (error) {
-    console.error('Error guardando en localStorage:', error);
-    return false;
+    console.error("Error al guardar en LocalStorage:", error);
   }
 };
 
-/**
- * Cargar datos desde localStorage
- */
 export const loadFromLocalStorage = () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : null;
+    const serializedData = localStorage.getItem(DATA_KEY);
+    if (serializedData === null) {
+      return undefined;
+    }
+    return JSON.parse(serializedData);
   } catch (error) {
-    console.error('Error cargando desde localStorage:', error);
-    return null;
+    console.error("Error al cargar de LocalStorage:", error);
+    return undefined;
   }
 };
 
-/**
- * Limpiar datos de localStorage
- */
-export const clearLocalStorage = () => {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    return true;
-  } catch (error) {
-    console.error('Error limpiando localStorage:', error);
-    return false;
-  }
-};
-
-/**
- * Guardar tema (dark/light)
- */
+// Funciones para guardar/cargar el Tema (Ahora crucial para ThemeContext)
 export const saveTheme = (isDark) => {
   try {
     localStorage.setItem(THEME_KEY, JSON.stringify(isDark));
-    return true;
   } catch (error) {
-    console.error('Error guardando tema:', error);
-    return false;
+    console.error("Error al guardar el tema:", error);
   }
 };
 
-/**
- * Cargar tema
- */
 export const loadTheme = () => {
   try {
-    const theme = localStorage.getItem(THEME_KEY);
-    return theme ? JSON.parse(theme) : false;
+    const serializedTheme = localStorage.getItem(THEME_KEY);
+    // Modo claro por defecto si no hay tema guardado
+    if (serializedTheme === null) {
+      return false; 
+    }
+    return JSON.parse(serializedTheme);
   } catch (error) {
-    console.error('Error cargando tema:', error);
+    console.error("Error al cargar el tema:", error);
     return false;
   }
 };

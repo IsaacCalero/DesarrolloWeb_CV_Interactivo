@@ -1,198 +1,101 @@
-import { useState, useEffect } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { loadFromLocalStorage, saveToLocalStorage } from './utils/localStorage';
 import { initialData } from './data/initialData';
-import { saveToLocalStorage, loadFromLocalStorage, saveTheme, loadTheme } from './utils/localStorage';
-import Header from './components/Header';
-import DatosPersonales from './components/DatosPersonales';
-import Experiencia from './components/Experiencia';
-import Estudios from './components/Estudios';
+
+// Componentes y Páginas
+import NavBar from './components/NavBar'; 
+import HomePage from './pages/HomePage';
+import BlogPage from './pages/BlogPage';
+import PostDetailPage from './pages/PostDetailPage';
+// 🚨 Importamos el hook de contexto para obtener 'darkMode' en App.jsx
+import { useCvContext } from './context/CvContext'; 
 
 function App() {
-  const [data, setData] = useState(() => {
-    const saved = loadFromLocalStorage();
-    return saved || initialData;
-  });
+    // 🚨 Usamos el hook de contexto para obtener el estado del tema
+    const { darkMode } = useCvContext(); 
 
-  const [darkMode, setDarkMode] = useState(() => loadTheme());
-  const [isEditingMode, setIsEditingMode] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+    // Manejo de estado local estático (Header y Datos Personales)
+    const [data, setData] = useState(() => {
+        const saved = loadFromLocalStorage();
+        if (saved) {
+            return { 
+                header: saved.header || initialData.header,
+                datosPersonales: saved.datosPersonales || initialData.datosPersonales
+            };
+        }
+        return initialData;
+    });
 
-  // Guardar datos cuando cambien
-  useEffect(() => {
-    saveToLocalStorage(data);
-  }, [data]);
+    const [isEditingMode, setIsEditingMode] = useState(false);
+    const [scrollY, setScrollY] = useState(0);
 
-  // Guardar tema cuando cambie
-  useEffect(() => {
-    saveTheme(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    // Lógica para guardar datos estáticos en localStorage
+    useEffect(() => {
+        saveToLocalStorage({
+            header: data.header,
+            datosPersonales: data.datosPersonales
+        });
+    }, [data]);
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // Lógica para el efecto Parallax
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-  // ============================================
-  // HANDLERS - Header y DatosPersonales
-  // ============================================
-  const handleUpdateHeader = (newHeaderData) => {
-    setData({ ...data, header: newHeaderData });
-  };
-
-  const handleUpdateDatosPersonales = (newDatosPersonales) => {
-    setData({ ...data, datosPersonales: newDatosPersonales });
-  };
-
-  // ============================================
-  // HANDLERS CRUD - Experiencia
-  // ============================================
-  const handleAddExperiencia = (nuevaExperiencia) => {
-    const newExp = {
-      id: Date.now(),
-      ...nuevaExperiencia
+    // Handlers para actualizar datos estáticos
+    const staticHandlers = {
+        handleUpdateHeader: (newHeaderData) => setData({ ...data, header: newHeaderData }),
+        handleUpdateDatosPersonales: (newDatosPersonales) => setData({ ...data, datosPersonales: newDatosPersonales }),
     };
-    setData({
-      ...data,
-      experiencia: [...data.experiencia, newExp]
-    });
-  };
+    
+    return (
+        // 🚨 CORRECCIÓN CRÍTICA PARA VISIBILIDAD (PANTALLA EN BLANCO)
+        // Aplicamos las clases de fondo y texto dependientes del tema (darkMode)
+        <div className={`min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-500`}>
+            
+            {/* Fondo con efecto Parallax */}
+            <div
+                className="fixed inset-0 -z-10 opacity-20 dark:opacity-5 transition-opacity duration-500"
+                style={{
+                    backgroundImage: 'linear-gradient(45deg, #3b82f6 25%, transparent 25%), linear-gradient(-45deg, #3b82f6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #3b82f6 75%), linear-gradient(-45deg, transparent 75%, #3b82f6 75%)',
+                    backgroundSize: '60px 60px',
+                    backgroundPosition: '0 0, 0 30px, 30px -30px, -30px 0px',
+                    transform: `translateY(${scrollY * 0.5}px)`
+                }}
+            />
 
-  const handleUpdateExperiencia = (id, experienciaActualizada) => {
-    setData({
-      ...data,
-      experiencia: data.experiencia.map(exp =>
-        exp.id === id ? { ...exp, ...experienciaActualizada } : exp
-      )
-    });
-  };
+            {/* Barra de Navegación */}
+            <NavBar
+                isEditingMode={isEditingMode}
+                setIsEditingMode={setIsEditingMode}
+            />
 
-  const handleDeleteExperiencia = (id) => {
-    setData({
-      ...data,
-      experiencia: data.experiencia.filter(exp => exp.id !== id)
-    });
-  };
-
-  // ============================================
-  // HANDLERS CRUD - Estudios
-  // ============================================
-  const handleAddEstudio = (nuevoEstudio) => {
-    const newEstudio = {
-      id: Date.now(),
-      ...nuevoEstudio
-    };
-    setData({
-      ...data,
-      estudios: [...data.estudios, newEstudio]
-    });
-  };
-
-  const handleUpdateEstudio = (id, estudioActualizado) => {
-    setData({
-      ...data,
-      estudios: data.estudios.map(est =>
-        est.id === id ? { ...est, ...estudioActualizado } : est
-      )
-    });
-  };
-
-  const handleDeleteEstudio = (id) => {
-    setData({
-      ...data,
-      estudios: data.estudios.filter(est => est.id !== id)
-    });
-  };
-
-  return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Fondo con efecto Parallax */}
-      <div
-        className="fixed inset-0 -z-10 opacity-20"
-        style={{
-          backgroundImage: 'linear-gradient(45deg, #3b82f6 25%, transparent 25%), linear-gradient(-45deg, #3b82f6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #3b82f6 75%), linear-gradient(-45deg, transparent 75%, #3b82f6 75%)',
-          backgroundSize: '60px 60px',
-          backgroundPosition: '0 0, 0 30px, 30px -30px, -30px 0px',
-          transform: `translateY(${scrollY * 0.5}px)`
-        }}
-      />
-
-      {/* Barra superior */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md p-4 sticky top-0 z-10`}>
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">Hoja de Vida</h1>
-
-          <div className="flex gap-3">
-            {/* Botón de modo edición */}
-            <button
-              onClick={() => setIsEditingMode(!isEditingMode)}
-              className={`px-4 py-2 font-bold rounded-lg transition-colors shadow-md ${isEditingMode
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'bg-green-500 hover:bg-green-600 text-white'
-                }`}
-            >
-              {isEditingMode ? '🔒 Bloquear Edición' : '✏️ Activar Edición'}
-            </button>
-
-            {/* Botón de modo oscuro */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-3 rounded-lg ${darkMode ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-800 hover:bg-gray-700'
-                } text-white flex items-center gap-2`}
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
+            {/* Contenido principal: Rutas */}
+            <main className="max-w-6xl mx-auto p-6 space-y-6">
+                <Routes>
+                    {/* Ruta 1: Hoja de Vida (CV) */}
+                    <Route
+                        path="/"
+                        element={<HomePage data={data} isEditingMode={isEditingMode} {...staticHandlers} />}
+                    />
+                    
+                    {/* Rutas 2 & 3: Blog */}
+                    <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/blog/:id" element={<PostDetailPage />} />
+                    
+                    {/* Ruta 404 */}
+                    <Route path="*" element={
+                        <div className="text-center py-20 text-2xl font-bold text-red-500">
+                            404 | Página no encontrada
+                        </div>
+                    } />
+                </Routes>
+            </main>
         </div>
-      </div>
-
-      {/* Contenido principal */}
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* Fila 1: Header y Datos Personales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Header
-            data={data.header}
-            onUpdate={handleUpdateHeader}
-            isEditingMode={isEditingMode}
-            darkMode={darkMode}
-          />
-
-          <DatosPersonales
-            data={data.datosPersonales}
-            onUpdate={handleUpdateDatosPersonales}
-            isEditingMode={isEditingMode}
-            darkMode={darkMode}
-          />
-        </div>
-
-        {/* Fila 2: Experiencia y Estudios */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Experiencia
-            experiencias={data.experiencia}
-            onAdd={handleAddExperiencia}
-            onUpdate={handleUpdateExperiencia}
-            onDelete={handleDeleteExperiencia}
-            isEditingMode={isEditingMode}
-            darkMode={darkMode}
-          />
-
-          <Estudios
-            estudios={data.estudios}
-            onAdd={handleAddEstudio}
-            onUpdate={handleUpdateEstudio}
-            onDelete={handleDeleteEstudio}
-            isEditingMode={isEditingMode}
-            darkMode={darkMode}
-          />
-        </div>        
-      </div>
-    </div>
-  ); 
+    ); 
 }
 
 export default App;
