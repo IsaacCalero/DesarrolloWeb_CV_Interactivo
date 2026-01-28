@@ -9,7 +9,6 @@ Aplicación web desarrollada con **React** y **Vite** que funciona como un **Cur
 Este proyecto tiene como objetivo aplicar conceptos fundamentales del desarrollo web moderno, como el uso de componentes en React, manejo de rutas, consumo de APIs REST y renderizado de contenido dinámico.  
 
 La aplicación está dividida en dos partes principales:
-
 - **CV Interactivo:** muestra experiencia, educación y habilidades de manera clara y responsiva.
 - **Blog Personal:** permite la lectura de artículos relacionados con desarrollo web y tecnología.
 
