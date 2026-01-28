@@ -1,17 +1,35 @@
+// Importar hooks de React para gestionar estado y efectos secundarios
 import { useState, useEffect } from 'react';
+// Importar iconos de lucide-react para la interfaz visual
 import { GraduationCap, Plus, Edit2, Trash2, Save, X, Clock } from 'lucide-react';
 
+// Componente Estudios: gestiona la visualización y edición de formación académica
+// Props:
+//   - estudios: array de objetos con los datos de educación del backend
+//   - onAdd: función para agregar un nuevo estudio
+//   - onUpdate: función para actualizar un estudio existente
+//   - onDelete: función para eliminar un estudio
+//   - isEditingMode: boolean que indica si está en modo edición
+//   - darkMode: boolean para aplicar tema oscuro
 const Estudios = ({ estudios, onAdd, onUpdate, onDelete, isEditingMode, darkMode }) => {
+    // Estado para mostrar/ocultar el formulario
     const [showForm, setShowForm] = useState(false);
+    // Estado para almacenar el ID del estudio siendo editado (null si es nuevo)
     const [editingId, setEditingId] = useState(null);
+    
+    // Estado del formulario sincronizado con el esquema Education del backend
+    // Los nombres de los campos deben coincidir exactamente con los del modelo
     const [formData, setFormData] = useState({
-        institucion: '',
-        titulo: '',
-        periodo: '',
-        descripcion: ''
+        institution: '',   // Nombre de la institución educativa
+        degree: '',        // Título o grado académico
+        fieldOfStudy: '',  // Área de estudio
+        startDate: '',     // Fecha de inicio
+        endDate: '',       // Fecha de finalización
+        description: ''    // Descripción adicional
     });
 
-    // Cerrar formulario si se desactiva el modo edición global
+    // Hook useEffect: se ejecuta cuando cambia isEditingMode
+    // Si el usuario sale del modo edición, resetea el formulario
     useEffect(() => {
         if (!isEditingMode) {
             setShowForm(false);
@@ -19,83 +37,103 @@ const Estudios = ({ estudios, onAdd, onUpdate, onDelete, isEditingMode, darkMode
         }
     }, [isEditingMode]);
 
+    // Manejador de cambios en los inputs del formulario
+    // Actualiza formData cuando el usuario escribe
     const handleChange = (e) => {
         const { name, value } = e.target;
+        // Actualiza solo el campo modificado, manteniendo los demás
         setFormData({ ...formData, [name]: value });
     };
 
+    // Manejador del envío del formulario
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Verifica si los campos requeridos no están vacíos
-        if (!formData.institucion || !formData.titulo || !formData.periodo) {
-            alert("Por favor, completa los campos obligatorios.");
+        // Validación: los campos institution y degree son obligatorios según el backend
+        if (!formData.institution || !formData.degree) {
+            alert("Por favor, completa los campos obligatorios (Institución y Título).");
             return;
         }
 
+        // Si editingId existe, es una actualización; si no, es un nuevo registro
         if (editingId) {
-            // Llama a onUpdate (Axios PUT en useCvData)
             onUpdate(editingId, formData);
         } else {
-            // Llama a onAdd (Axios POST en useCvData)
-            // JSON Server le asignará el ID automáticamente
             onAdd(formData);
         }
         
-        // Resetear formulario y cerrar
+        // Resetear el formulario después de guardar
         handleCancel();
     };
 
+    // Manejador para entrar en modo edición
+    // Carga los datos del estudio seleccionado en el formulario
     const handleEdit = (estudio) => {
+        // Cargar los datos del estudio en formData (usar || '' para evitar undefined)
         setFormData({
-            institucion: estudio.institucion,
-            titulo: estudio.titulo,
-            periodo: estudio.periodo,
-            descripcion: estudio.descripcion // La descripción puede ser null/undefined si JSON Server no la tiene
+            institution: estudio.institution || '',
+            degree: estudio.degree || '',
+            fieldOfStudy: estudio.fieldOfStudy || '',
+            startDate: estudio.startDate || '',
+            endDate: estudio.endDate || '',
+            description: estudio.description || ''
         });
-        setEditingId(estudio.id); // ¡CRUCIAL! Este es el ID usado por Axios para PUT/DELETE
+        // Guardar el ID del estudio que se está editando (_id es el identificador de MongoDB)
+        setEditingId(estudio._id);
+        // Mostrar el formulario
         setShowForm(true);
     };
 
+    // Manejador para cancelar la edición
+    // Resetea el formulario a sus valores iniciales
     const handleCancel = () => {
         setFormData({
-            institucion: '',
-            titulo: '',
-            periodo: '',
-            descripcion: ''
+            institution: '',
+            degree: '',
+            fieldOfStudy: '',
+            startDate: '',
+            endDate: '',
+            description: ''
         });
         setEditingId(null);
         setShowForm(false);
     };
 
+    // Manejador para eliminar un estudio con confirmación
     const confirmDelete = (id) => {
-        if (window.confirm('¿Estás seguro de eliminar este estudio de forma permanente?')) {
-            // Llama a onDelete (Axios DELETE en useCvData)
+        // Solicitar confirmación al usuario antes de eliminar permanentemente
+        if (window.confirm('¿Estás seguro de eliminar este estudio permanentemente?')) {
             onDelete(id);
         }
     };
 
-    // Estilos dinámicos
+    // --- ESTILOS DINÁMICOS (con soporte para modo oscuro) ---
+
+    // Clases para la tarjeta principal del componente
     const cardClasses = `p-6 rounded-xl shadow-lg transition-all duration-300 ${
         darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
     }`;
 
+    // Clases para los campos de entrada del formulario
     const inputClasses = `w-full p-3 rounded-lg border focus:ring-2 focus:ring-blue-500 transition-all outline-none duration-200 ${
         darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-800 placeholder-gray-500'
     }`;
 
+    // Clases para los items de estudios listados
     const itemClasses = `p-4 rounded-lg border-l-4 transition-all duration-300 ${
         darkMode ? 'bg-gray-700 border-blue-500 hover:bg-gray-600' : 'bg-gray-50 border-blue-500 hover:bg-gray-100'
     }`;
 
     return (
         <div className={cardClasses}>
+            {/* ENCABEZADO CON TÍTULO Y BOTÓN AGREGAR */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className={`text-2xl font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                     <GraduationCap size={24} className="text-blue-500" />
                     Formación Académica
                 </h2>
                 
+                {/* Botón para agregar nuevo estudio (solo en modo edición) */}
                 {isEditingMode && !showForm && (
                     <button
                         onClick={() => setShowForm(true)}
@@ -106,89 +144,57 @@ const Estudios = ({ estudios, onAdd, onUpdate, onDelete, isEditingMode, darkMode
                 )}
             </div>
 
-            {/* Formulario de Agregar/Editar */}
+            {/* FORMULARIO DE AGREGAR/EDITAR (solo visible en modo edición) */}
             {showForm && isEditingMode && (
-                <div 
-                    className={`mb-6 p-5 rounded-xl border-4 border-dashed border-blue-500/50 transition-colors duration-300 ${
-                        darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                    }`}
-                >
+                <div className={`mb-6 p-5 rounded-xl border-4 border-dashed border-blue-500/50 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                         {editingId ? 'Editar Estudio' : 'Nuevo Estudio'}
                     </h3>
                     
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className={`block font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Título/Grado <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="titulo"
-                                value={formData.titulo}
-                                onChange={handleChange}
-                                className={inputClasses}
-                                placeholder="Ej: Ingeniería en Sistemas"
-                                required
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Campo Título/Grado - OBLIGATORIO */}
+                            <div>
+                                <label className="block font-semibold mb-2 text-sm">Título / Grado *</label>
+                                <input type="text" name="degree" value={formData.degree} onChange={handleChange} className={inputClasses} placeholder="Ej: Ingeniero" required />
+                            </div>
+                            {/* Campo Institución - OBLIGATORIO */}
+                            <div>
+                                <label className="block font-semibold mb-2 text-sm">Institución *</label>
+                                <input type="text" name="institution" value={formData.institution} onChange={handleChange} className={inputClasses} placeholder="Ej: Universidad" required />
+                            </div>
                         </div>
 
+                        {/* Campo Área de Estudio - OPCIONAL */}
                         <div>
-                            <label className={`block font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Institución <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="institucion"
-                                value={formData.institucion}
-                                onChange={handleChange}
-                                className={inputClasses}
-                                placeholder="Ej: Universidad Central del Ecuador"
-                                required
-                            />
+                            <label className="block font-semibold mb-2 text-sm">Campo de Estudio</label>
+                            <input type="text" name="fieldOfStudy" value={formData.fieldOfStudy} onChange={handleChange} className={inputClasses} placeholder="Ej: Desarrollo de Software" />
                         </div>
 
-                        <div>
-                            <label className={`block font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Período <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="periodo"
-                                value={formData.periodo}
-                                onChange={handleChange}
-                                className={inputClasses}
-                                placeholder="Ej: 2018 - 2022"
-                                required
-                            />
+                        {/* Fechas de inicio y fin - OPCIONALES */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block font-semibold mb-2 text-sm">Fecha Inicio</label>
+                                <input type="text" name="startDate" value={formData.startDate} onChange={handleChange} className={inputClasses} placeholder="Ej: Enero 2020" />
+                            </div>
+                            <div>
+                                <label className="block font-semibold mb-2 text-sm">Fecha Fin (o Actual)</label>
+                                <input type="text" name="endDate" value={formData.endDate} onChange={handleChange} className={inputClasses} placeholder="Ej: Diciembre 2023" />
+                            </div>
                         </div>
 
+                        {/* Campo Descripción - OPCIONAL */}
                         <div>
-                            <label className={`block font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Descripción (Opcional)
-                            </label>
-                            <textarea
-                                name="descripcion"
-                                value={formData.descripcion}
-                                onChange={handleChange}
-                                className={`${inputClasses} resize-none`}
-                                placeholder="Logros, menciones honoríficas, especialización..."
-                                rows="3"
-                            />
+                            <label className="block font-semibold mb-2 text-sm">Descripción</label>
+                            <textarea name="description" value={formData.description} onChange={handleChange} className={`${inputClasses} resize-none`} rows="3" />
                         </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                type="submit"
-                                className="flex items-center px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors shadow-md"
-                            >
+                        {/* Botones Guardar y Cancelar */}
+                        <div className="flex gap-3">
+                            <button type="submit" className="flex items-center px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 shadow-md">
                                 <Save size={18} className="mr-2" /> {editingId ? 'Actualizar' : 'Guardar'}
                             </button>
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                className="flex items-center px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-colors shadow-md"
-                            >
+                            <button type="button" onClick={handleCancel} className="flex items-center px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 shadow-md">
                                 <X size={18} className="mr-2" /> Cancelar
                             </button>
                         </div>
@@ -196,56 +202,37 @@ const Estudios = ({ estudios, onAdd, onUpdate, onDelete, isEditingMode, darkMode
                 </div>
             )}
 
-            {/* Lista de Estudios */}
+            {/* LISTA DE ESTUDIOS */}
             <div className="space-y-4">
                 {estudios.length === 0 ? (
-                    <p className={`text-center py-8 italic ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        No hay estudios registrados. 
-                        {isEditingMode && ' Haz clic en "Agregar" para crear uno.'}
-                    </p>
+                    // Mensaje cuando no hay estudios registrados
+                    <p className="text-center py-8 italic opacity-50">No hay registros.</p>
                 ) : (
+                    // Mapear y mostrar cada estudio
                     estudios.map((estudio) => (
-                        <div key={estudio.id} className={itemClasses}>
-                            <div className="flex justify-between items-start gap-4">
+                        <div key={estudio._id} className={itemClasses}>
+                            <div className="flex justify-between items-start">
+                                {/* Información del estudio */}
                                 <div className="flex-1">
-                                    <h3 className={`text-lg font-bold ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                                        {estudio.titulo}
-                                    </h3>
-                                    <p className={`font-semibold mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        {estudio.institucion}
+                                    <h3 className="text-lg font-bold text-blue-500">{estudio.degree}</h3>
+                                    <p className="font-semibold">{estudio.institution}</p>
+                                    {/* Mostrar fechas con icono de reloj */}
+                                    <p className="text-sm flex items-center gap-1 opacity-70">
+                                        <Clock size={14} /> {estudio.startDate} - {estudio.endDate || 'Actualidad'}
                                     </p>
-                                    <p className={`text-sm flex items-center gap-1 mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        <Clock size={14} />
-                                        {estudio.periodo}
-                                    </p>
-                                    {estudio.descripcion && (
-                                        <p className={`mt-3 text-sm italic ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-                                            {estudio.descripcion}
-                                        </p>
-                                    )}
+                                    {/* Mostrar descripción si existe */}
+                                    {estudio.description && <p className="mt-2 text-sm italic opacity-80">{estudio.description}</p>}
                                 </div>
-
-                                {/* Botones de acciones */}
+                                
+                                {/* Botones de edición y eliminación (solo en modo edición) */}
                                 {isEditingMode && (
-                                    <div className="flex gap-2 flex-shrink-0">
-                                        <button
-                                            // Deshabilitar edición si el mismo elemento está siendo editado en el formulario
-                                            onClick={() => handleEdit(estudio)}
-                                            disabled={editingId === estudio.id} 
-                                            className={`p-2 rounded-lg transition-colors ${
-                                                editingId === estudio.id 
-                                                ? 'text-gray-400 cursor-not-allowed' 
-                                                : 'text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900'
-                                            }`}
-                                            title="Editar"
-                                        >
+                                    <div className="flex gap-2">
+                                        {/* Botón Editar */}
+                                        <button onClick={() => handleEdit(estudio)} className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg">
                                             <Edit2 size={18} />
                                         </button>
-                                        <button
-                                            onClick={() => confirmDelete(estudio.id)}
-                                            className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
-                                            title="Eliminar"
-                                        >
+                                        {/* Botón Eliminar */}
+                                        <button onClick={() => confirmDelete(estudio._id)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg">
                                             <Trash2 size={18} />
                                         </button>
                                     </div>
@@ -259,4 +246,5 @@ const Estudios = ({ estudios, onAdd, onUpdate, onDelete, isEditingMode, darkMode
     );
 };
 
+// Exportar el componente para usarlo en otras partes de la aplicación
 export default Estudios;

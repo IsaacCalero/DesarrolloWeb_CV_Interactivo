@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom'; // Añadimos Navigate
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/localStorage';
 import { initialData } from './data/initialData';
 
@@ -8,14 +8,20 @@ import NavBar from './components/NavBar';
 import HomePage from './pages/HomePage';
 import BlogPage from './pages/BlogPage';
 import PostDetailPage from './pages/PostDetailPage';
-// 🚨 Importamos el hook de contexto para obtener 'darkMode' en App.jsx
+import LoginPage from './pages/LoginPage';
+import PostForm from './pages/PostForm'; // 🚀 NUEVO: Importamos el formulario
 import { useCvContext } from './context/CvContext'; 
 
+// 🚀 NUEVO: Componente para proteger la ruta de creación
+const PrivateRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    return token ? children : <Navigate to="/login" />;
+};
+
 function App() {
-    // 🚨 Usamos el hook de contexto para obtener el estado del tema
     const { darkMode } = useCvContext(); 
 
-    // Manejo de estado local estático (Header y Datos Personales)
+    // Manejo de estado local estático
     const [data, setData] = useState(() => {
         const saved = loadFromLocalStorage();
         if (saved) {
@@ -30,7 +36,6 @@ function App() {
     const [isEditingMode, setIsEditingMode] = useState(false);
     const [scrollY, setScrollY] = useState(0);
 
-    // Lógica para guardar datos estáticos en localStorage
     useEffect(() => {
         saveToLocalStorage({
             header: data.header,
@@ -38,23 +43,19 @@ function App() {
         });
     }, [data]);
 
-    // Lógica para el efecto Parallax
     useEffect(() => {
         const handleScroll = () => setScrollY(window.scrollY);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Handlers para actualizar datos estáticos
     const staticHandlers = {
         handleUpdateHeader: (newHeaderData) => setData({ ...data, header: newHeaderData }),
         handleUpdateDatosPersonales: (newDatosPersonales) => setData({ ...data, datosPersonales: newDatosPersonales }),
     };
     
     return (
-        // 🚨 CORRECCIÓN CRÍTICA PARA VISIBILIDAD (PANTALLA EN BLANCO)
-        // Aplicamos las clases de fondo y texto dependientes del tema (darkMode)
-        <div className={`min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-500`}>
+        <div className={`min-h-screen ${darkMode ? 'dark' : ''} bg-white dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-500`}>
             
             {/* Fondo con efecto Parallax */}
             <div
@@ -85,6 +86,19 @@ function App() {
                     {/* Rutas 2 & 3: Blog */}
                     <Route path="/blog" element={<BlogPage />} />
                     <Route path="/blog/:id" element={<PostDetailPage />} />
+                    
+                    {/* Ruta para el Login */}
+                    <Route path="/login" element={<LoginPage />} />
+
+                    {/* 🚀 NUEVO: Ruta para crear posts (Protegida) */}
+                    <Route 
+                        path="/admin/posts/nuevo" 
+                        element={
+                            <PrivateRoute>
+                                <PostForm />
+                            </PrivateRoute>
+                        } 
+                    />
                     
                     {/* Ruta 404 */}
                     <Route path="*" element={
