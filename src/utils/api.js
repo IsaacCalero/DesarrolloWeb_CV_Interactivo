@@ -5,7 +5,7 @@ import axios from 'axios';
 // Definir la URL base de la API del servidor backend
 // Puerto 5000: donde corre el servidor Node.js/Express
 // /api: prefijo de todas las rutas de la API
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
 // Crear una instancia personalizada de Axios con configuración específica
 // Esta instancia se usa en toda la aplicación para comunicarse con la API

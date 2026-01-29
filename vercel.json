@@ -1,9 +1,20 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "FRONTEND_URL": "@frontend_url"
+  },
+  "functions": {
+    "api/index.cjs": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.cjs" 
+      "destination": "/api"
     }
   ]
 }
