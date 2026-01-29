@@ -3,9 +3,9 @@ const express = require('express');
 // Crear una instancia del router para definir las rutas de experiencia
 const router = express.Router();
 // Importar el modelo Experience para realizar operaciones en la base de datos
-const Experience = require('../models/Experience');
+const Experience = require('../models/Experience.cjs');
 // Importar el middleware de autenticación para proteger rutas privadas
-const auth = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware.cjs');
 
 // GET: Obtener todas las experiencias (Ruta pública - sin autenticación requerida)
 router.get('/', async (req, res) => {

@@ -3,9 +3,9 @@ const express = require('express');
 // Crear una instancia del router para definir las rutas de educación
 const router = express.Router();
 // Importar el modelo Education para realizar operaciones en la base de datos
-const Education = require('../models/Education');
+const Education = require('../models/Education.cjs');
 // Importar el middleware de autenticación para proteger rutas privadas
-const auth = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware.cjs');
 
 // GET: Obtener todos los estudios (Ruta pública - sin autenticación requerida)
 router.get('/', async (req, res) => {

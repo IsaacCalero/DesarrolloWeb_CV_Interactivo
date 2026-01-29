@@ -1,5 +1,5 @@
 // Importar el modelo de Post para realizar operaciones en la base de datos
-const Post = require('../models/Post');
+const Post = require('../models/Post.cjs');
 
 // Función para obtener todos los posts ordenados por fecha de creación (más recientes primero)
 exports.getPosts = async (req, res) => {

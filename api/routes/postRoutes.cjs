@@ -3,11 +3,11 @@ const express = require('express');
 // Crear una instancia del router para definir las rutas de posts
 const router = express.Router();
 // Importar el controlador de posts que contiene la lógica de negocio
-const postController = require('../controllers/postController');
+const postController = require('../controllers/postController.cjs');
 // Importar el middleware de autenticación para proteger rutas privadas
-const auth = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware.cjs');
 // Importar el validador de posts para verificar que los datos sean correctos
-const { validatePost } = require('../middleware/validators');
+const { validatePost } = require('../middleware/validators.cjs');
 
 // GET: Obtener todos los posts (Ruta pública - sin autenticación requerida)
 router.get('/', postController.getPosts);

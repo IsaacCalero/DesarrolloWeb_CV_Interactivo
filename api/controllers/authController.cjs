@@ -1,5 +1,5 @@
 // Importar el modelo de Usuario para interactuar con la base de datos
-const User = require('../models/User');
+const User = require('../models/User.cjs');
 // Importar jsonwebtoken para crear y verificar tokens JWT de autenticación
 const jwt = require('jsonwebtoken');
 // Importar bcryptjs para encriptar y comparar contraseñas de forma segura

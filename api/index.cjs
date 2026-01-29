@@ -4,13 +4,14 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const connectDB = require('./config/db');
+// ACTUALIZADO: Agregamos .cjs a la ruta
+const connectDB = require('./config/db.cjs');
 
-// Importar rutas
-const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/postRoutes');
-const educationRoutes = require('./routes/educationRoutes');
-const experienceRoutes = require('./routes/experienceRoutes');
+// ACTUALIZADO: Importar rutas con extensión .cjs
+const authRoutes = require('./routes/authRoutes.cjs');
+const postRoutes = require('./routes/postRoutes.cjs');
+const educationRoutes = require('./routes/educationRoutes.cjs');
+const experienceRoutes = require('./routes/experienceRoutes.cjs');
 
 const app = express();
 
@@ -21,7 +22,7 @@ connectDB();
 app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*', // En producción puedes usar '*' o la URL de Vercel
+    origin: process.env.FRONTEND_URL || '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -38,8 +39,6 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/estudios', educationRoutes);
-
-// CORREGIDO: Ahora experiencia apunta a experienceRoutes
 app.use('/api/experiencia', experienceRoutes); 
 app.use('/api/experience', experienceRoutes);
 
@@ -59,7 +58,6 @@ app.use((err, req, res, next) => {
 });
 
 // --- CONFIGURACIÓN PARA VERCEL ---
-// IMPORTANTE: Solo hacemos listen si NO estamos en Vercel (entorno local)
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
@@ -67,5 +65,4 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-// Exportar la app para que Vercel la use como Serverless Function
 module.exports = app;
