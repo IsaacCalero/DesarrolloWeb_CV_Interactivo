@@ -36,11 +36,11 @@ app.use('/api/', limiter);
 app.use(express.json());
 
 // --- DEFINICIÓN DE RUTAS ---
-app.use('/api/auth', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/estudios', educationRoutes);
-app.use('/api/experiencia', experienceRoutes); 
-app.use('/api/experience', experienceRoutes);
+app.use('/auth', authRoutes);
+app.use('/posts', postRoutes);
+app.use('/estudios', educationRoutes);
+app.use('/experiencia', experienceRoutes); 
+app.use('/experience', experienceRoutes);
 
 app.get('/', (req, res) => {
     res.send('🚀 Servidor del Portafolio Online en Vercel listo');
